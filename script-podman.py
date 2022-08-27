@@ -325,7 +325,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-
     check_podman_installed()
     ensure_podman_socket_running()
 
@@ -354,7 +353,6 @@ if __name__ == "__main__":
 
     if not interactive and not args.rebuild:
         ensure_container_stopped_removed()
-
 
     cprint('{0:.<70}'.format('PODMAN: image name'), 'yellow', end='')
     cprint(f' {image_name}', 'cyan')
