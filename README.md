@@ -22,7 +22,7 @@ pip3 install -r requirements.txt
 # login to the container 
 podman exec -it openwrt_builder /bin/bash
 
-# once inside the container, run this script to build cemu
+# once inside the container, run this script to build an openwrt image for each profile
 /root/scripts/01-build.openwrt.sh
 
 # the resulting openwrt image(s) will be copied to the /output directory which is shared with the host system
