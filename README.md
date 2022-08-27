@@ -14,7 +14,7 @@ If all else fails you could always install the python libraries with pip:
 pip3 install -r requirements.txt
 ```
 
-**build openwrt image according to the profiles listed in ```profiles```**
+**build openwrt image(s) according to the profile(s) listed in ```profiles```**
 ```
 # this will build the image and run the container   
 ./script-podman.py
