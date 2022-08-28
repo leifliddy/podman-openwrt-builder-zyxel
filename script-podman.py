@@ -82,8 +82,7 @@ def ensure_podman_socket_running():
     cmd_output = subprocess.run(cmd, capture_output=True, universal_newlines=True)
 
     if args.debug:
-        print_debug('to manually start podman.socket', podman_cmd_str)
-        cprint('DEBUG: to manually start podman.socket:', cmd_str)
+        print_debug('to manually start podman.socket', cmd_str)
 
     if cmd_output.returncode != 0:
         err_output = cmd_output.stderr.rstrip()
@@ -181,7 +180,7 @@ def ensure_container_stopped_removed(remove_container=True):
 
         cprint('{0:.<70}'.format('PODMAN: checking if container is running'), 'yellow', end='')
 
-        if container_status != 'exited':
+        if container_status == 'running':
             print_yes()
             cprint('PODMAN: stopping container...', 'yellow')
             if args.debug:
