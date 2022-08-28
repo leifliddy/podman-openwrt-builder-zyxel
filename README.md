@@ -9,7 +9,7 @@ You'd obviously need to modify ```Dockerfile``` ```build.scripts/01-build.openwr
 dnf install podman python3-podman python3-termcolor   
 ```
 For other distros, it shouldn't be hard to find these packages.  
-If all else fails you could always install the python libraries with pip:
+Alteratively you could install the python libraries via pip:
 ```
 pip3 install -r requirements.txt
 ```
