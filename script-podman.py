@@ -255,19 +255,21 @@ def run_container(interactive):
         set_selinux_context_t(mount_dirs, recursive=True)
 
     if interactive:
+        podman_cmd_str = f'podman run -d -it -v {scripts_dir_host}:{scripts_dir_container} -v {output_dir_host}:{output_dir_container} -v {profiles_dir_host}:{profiles_dir_container} \
+                                                                                                                          -h {container_hostname} --name {container_name} {image_name}'
         if args.debug:
-            podman_cmd_str = f'podman run -d -it -v {scripts_dir_host}:{scripts_dir_container} -v {output_dir_host}:{output_dir_container} \
-                                                 -v {profiles_dir_host}:{profiles_dir_container} -h {container_hostname} --name {container_name} {image_name}'
             print_debug('to manually run the container', podman_cmd_str)
 
         client.containers.run(image=image_name, name=container_name, hostname=container_hostname, detach=True, tty=True, mounts=bind_volumes)
 
     else:
+        podman_cmd_str = f'podman run -it --rm -v {scripts_dir_host}:{scripts_dir_container} -v {output_dir_host}:{output_dir_container} -v {profiles_dir_host}:{profiles_dir_container}  \
+                                                                                                         -h {container_hostname} --name {container_name} {image_name} {container_script}'
+        podman_cmd = podman_cmd_str.split()
+
         if args.debug:
-            podman_cmd_str = f'podman run -it --rm -v {scripts_dir_host}:{scripts_dir_container} -v {output_dir_host}:{output_dir_container} \
-                                                   -v {profiles_dir_host}:{profiles_dir_container} -h {container_hostname} --name {container_name} {image_name} {container_script}'
-            podman_cmd = podman_cmd_str.split()
             print_debug('to manually run the container', podman_cmd_str)
+
         cprint(f'PODMAN: running command {container_script}', 'yellow')
         # using the api function will hide the script output
         # use subprocess so we can see it in real-time
