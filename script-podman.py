@@ -6,7 +6,6 @@ import rpm
 import selinux
 import subprocess
 import sys
-import time
 from podman import PodmanClient
 from termcolor import cprint
 
