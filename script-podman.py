@@ -15,7 +15,23 @@ image_name          = 'openwrt_build_env'
 container_name      = 'openwrt_builder'
 container_hostname  = 'openwrt_builder'
 container_script    = '/root/scripts/01-build.openwrt.sh'
-cur_dir             = os.path.dirname(os.path.realpath(__file__))
+
+cur_dir                 = os.path.dirname(os.path.realpath(__file__))
+scripts_dir_host        = f'{cur_dir}/build.scripts'
+scripts_dir_container   = '/root/scripts'
+output_dir_host         = f'{cur_dir}/output'
+output_dir_container    = '/output'
+profiles_dir_host       = f'{cur_dir}/profiles'
+profiles_dir_container  = '/root/profiles'
+podman_vol_str          = f'-v {scripts_dir_host}:{scripts_dir_container} -v {output_dir_host}:{output_dir_container} -v {profiles_dir_host}:{profiles_dir_container}'
+
+# ensure bind mounted directories have the container_file_t label set
+mount_dirs = [scripts_dir_host, output_dir_host, profiles_dir_host]
+
+bind_volumes = []
+bind_volumes.append({'source': f'{scripts_dir_host}', 'target': f'{scripts_dir_container}', 'type': 'bind'})
+bind_volumes.append({'source': f'{output_dir_host}', 'target': f'{output_dir_container}', 'type': 'bind'})
+bind_volumes.append({'source': f'{profiles_dir_host}', 'target': f'{profiles_dir_container}', 'type': 'bind'})
 
 
 def print_yes():
@@ -159,16 +175,6 @@ def ensure_container_exists_and_running(interactive):
             ensure_container_exists_and_running(interactive)
 
 
-def create_mounts_dict(host_mount, container_mount):
-    mounts = {
-               'type':   'bind',
-               'source': host_mount,
-               'target': container_mount,
-             }
-
-    return mounts
-
-
 def ensure_container_stopped_removed(remove_container=True):
     cprint('{0:.<70}'.format('PODMAN: checking if container exists'), 'yellow', end='')
     container_exists = client.containers.list(all=True, filters = {'name' : container_name})
@@ -202,7 +208,7 @@ def ensure_container_stopped_removed(remove_container=True):
         print_soft_no()
 
 
-def set_selinux_context_t(mount_dirs, recursive=False):
+def set_selinux_context_t(recursive=False):
     cprint('{0:.<70}'.format('PODMAN: selinux label check'), 'yellow', end='')
     container_context_t = 'container_file_t'
     dir_file_paths = []
@@ -237,34 +243,19 @@ def set_selinux_context_t(mount_dirs, recursive=False):
 
 def run_container(interactive):
     cprint('PODMAN: run container...', 'yellow')
-    bind_volumes            = []
-    scripts_dir_host        = f'{cur_dir}/build.scripts'
-    scripts_dir_container   = '/root/scripts'
-    output_dir_host         = f'{cur_dir}/output'
-    output_dir_container    = '/output'
-    profiles_dir_host       = f'{cur_dir}/profiles'
-    profiles_dir_container  = '/root/profiles'
 
-    bind_volumes.append(create_mounts_dict(scripts_dir_host, scripts_dir_container))
-    bind_volumes.append(create_mounts_dict(output_dir_host, output_dir_container))
-    bind_volumes.append(create_mounts_dict(profiles_dir_host, profiles_dir_container))
-
-    # ensure bind mounted directories have the container_file_t label set
-    mount_dirs = [scripts_dir_host, output_dir_host, profiles_dir_host]
     if selinux.is_selinux_enabled():
-        set_selinux_context_t(mount_dirs, recursive=True)
+        set_selinux_context_t(recursive=True)
 
     if interactive:
-        podman_cmd_str = f'podman run -d -it -v {scripts_dir_host}:{scripts_dir_container} -v {output_dir_host}:{output_dir_container} -v {profiles_dir_host}:{profiles_dir_container} \
-                                                                                                                          -h {container_hostname} --name {container_name} {image_name}'
+        podman_cmd_str = f'podman run -d -it {podman_vol_str} -h {container_hostname} --name {container_name} {image_name}'
         if args.debug:
             print_debug('to manually run the container', podman_cmd_str)
 
         client.containers.run(image=image_name, name=container_name, hostname=container_hostname, detach=True, tty=True, mounts=bind_volumes)
 
     else:
-        podman_cmd_str = f'podman run -it --rm -v {scripts_dir_host}:{scripts_dir_container} -v {output_dir_host}:{output_dir_container} -v {profiles_dir_host}:{profiles_dir_container}  \
-                                                                                                         -h {container_hostname} --name {container_name} {image_name} {container_script}'
+        podman_cmd_str = f'podman run -it --rm {podman_vol_str} -h {container_hostname} --name {container_name} {image_name} {container_script}'
         podman_cmd = podman_cmd_str.split()
 
         if args.debug:
