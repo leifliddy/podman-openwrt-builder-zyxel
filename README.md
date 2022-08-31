@@ -8,11 +8,6 @@ You'd obviously need to modify ```Dockerfile``` ```build.scripts/01-build.openwr
 ```
 dnf install podman python3-podman python3-termcolor   
 ```
-For other distros, it shouldn't be hard to find these packages.  
-Alteratively you could install the python libraries via pip:
-```
-pip3 install -r requirements.txt
-```
 
 **build openwrt image(s) according to the profile(s) listed in ```profiles```**
 ```
