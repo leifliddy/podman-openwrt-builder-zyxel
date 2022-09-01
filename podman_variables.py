@@ -41,5 +41,3 @@ bind_volumes.append(create_mounts_dict(profiles_dir_host, profiles_dir_container
 # set privileged mode
 privileged = False
 
-
-
