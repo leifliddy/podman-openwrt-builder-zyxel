@@ -188,22 +188,32 @@ def ensure_container_stopped_removed(remove_container=True):
         print_soft_no()
 
 
-def set_selinux_context_t(recursive=False):
-    cprint('{0:.<70}'.format('PODMAN: selinux label check'), 'yellow', end='')
+def set_selinux_context_t():
     container_context_t = 'container_file_t'
     dir_file_paths = []
 
-    if not recursive:
-        dir_file_paths = mount_dirs_selinux
-    else:
-        for mount_dir in mount_dirs_selinux:
-            for dir_path, dirs, files in os.walk(mount_dir):
-                for filename in files:
-                    file_path = os.path.join(dir_path,filename)
-                    dir_file_paths.append(file_path)
+    for vol in bind_volumes:
+        host_dir = None
+        recursive = None
 
-                dir_file_paths.append(dir_path)
+        if vol['selinux_label']:
+            host_dir = vol['source']
+            recursive = vol['selinux_recursive']
 
+            if not recursive:
+                dir_file_paths.append(host_dir)
+            else:
+                for dir_path, dirs, files in os.walk(host_dir):
+                    for filename in files:
+                        file_path = os.path.join(dir_path,filename)
+                        dir_file_paths.append(file_path)
+
+                    dir_file_paths.append(dir_path)
+
+    if not dir_file_paths:
+        return
+
+    cprint('{0:.<70}'.format('PODMAN: selinux label check'), 'yellow', end='')
 
     for dir_file_path in dir_file_paths:
         ret, mount_dir_context = selinux.getfilecon(dir_file_path)
@@ -221,21 +231,44 @@ def set_selinux_context_t(recursive=False):
     print_yes()
 
 
-def run_container(interactive):
-    cprint('PODMAN: run container...', 'yellow')
+def create_podman_vol_str():
+    mount_vol_list = []
 
+    if not bind_volumes:
+        return ''
+
+    for vol in bind_volumes:
+        option = ''
+        if vol['read_only']:
+            option = ':ro'
+        mount_vol_list.append(f"-v {vol['source']}:{vol['target']}{option} ")
+
+    mount_vol_str = ''.join(mount_vol_list).rstrip()
+
+    return mount_vol_str
+
+
+def run_container(interactive):
     if selinux.is_selinux_enabled():
-        set_selinux_context_t(recursive=True)
+        set_selinux_context_t()
+
+    cprint('PODMAN: run container...', 'yellow')
+    podman_vol_str = create_podman_vol_str()
+
+    if privileged:
+        privileged_str = '--privileged '
+    else:
+        privileged_str = ''
 
     if interactive:
-        podman_cmd_str = f'podman run -d -it {podman_vol_str} -h {container_hostname} --name {container_name} {image_name}'
+        podman_cmd_str = f'podman run -d -it {privileged_str}{podman_vol_str} -h {container_hostname} --name {container_name} {image_name}'
         if args.debug:
             print_debug('to manually run the container', podman_cmd_str)
 
-        client.containers.run(image=image_name, name=container_name, hostname=container_hostname, detach=True, tty=True, mounts=bind_volumes)
+        client.containers.run(image=image_name, name=container_name, hostname=container_hostname, detach=True, tty=True, privileged=privileged, mounts=bind_volumes)
 
     else:
-        podman_cmd_str = f'podman run -it --rm {podman_vol_str} -h {container_hostname} --name {container_name} {image_name} {container_script}'
+        podman_cmd_str = f'podman run -it --rm {privileged_str}{podman_vol_str} -h {container_hostname} --name {container_name} {image_name} {container_script}'
         podman_cmd = podman_cmd_str.split()
 
         if args.debug:
