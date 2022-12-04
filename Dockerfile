@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:36
+FROM registry.fedoraproject.org/fedora:37
 
 ENV imagebuilder openwrt-imagebuilder-22.03.0-ipq806x-generic.Linux-x86_64.tar.xz
 ENV imagebuilder_url https://downloads.openwrt.org/releases/22.03.0/targets/ipq806x/generic/openwrt-imagebuilder-22.03.0-ipq806x-generic.Linux-x86_64.tar.xz
