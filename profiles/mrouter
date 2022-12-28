@@ -1,1 +1,1 @@
-bash blkid dmesg lm-sensors lsblk luci luci-proto-relay openssh-client openssh-client-utils openssh-keygen openssh-moduli openssh-server openssh-sftp-client openssh-sftp-server procps-ng procps-ng-free procps-ng-ps procps-ng-top procps-ng-watch
+bash blkid dmesg lm-sensors lsblk luci luci-proto-relay openssh-client openssh-client-utils openssh-keygen openssh-moduli openssh-server openssh-sftp-client openssh-sftp-server procps-ng procps-ng-free procps-ng-ps procps-ng-top procps-ng-watch wget-ssl
