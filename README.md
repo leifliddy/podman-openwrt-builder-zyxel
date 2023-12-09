@@ -6,7 +6,7 @@ You'd obviously need to modify ```Dockerfile``` ```build.scripts/01-build.openwr
 
 **Fedora package install**
 ```
-dnf install podman python3-podman python3-termcolor   
+dnf install podman python3-podman python3-rich python3-termcolor   
 ```
 
 **build openwrt image(s) according to the profile(s) listed in ```profiles```**
